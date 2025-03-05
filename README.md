@@ -29,24 +29,21 @@
 ### 基础用法
 
 ```java
-// 初始化大模型配置 
-LLMInfo llm = new LLMInfo("sk-xxxxxx", "gpt-4", "https://api.openai.com/v1/chat/completions"); 
- 
-// 创建生成器（使用默认配置）
-GenerateSQLWithLLM generator = new GenerateSQLWithLLM(llm);
-
-// 准备表结构元数据 
-List<TableMeta> tables = Arrays.asList( 
-    new TableMeta("orders", "订单表", 
-        Arrays.asList( 
-            new ColumnMeta("order_id", "BIGINT", "订单唯一标识"),
-            new ColumnMeta("amount", "DECIMAL(10,2)", "订单金额")
-        ))
-);
-
-// 生成SQL
- String sql = generator.generateSQL("本月系统登录人数和登录人次分别有多少？",tables);
-
+	// 初始化连接api配置
+  		LLMInfo llm = new LLMInfo();
+        llm.setApiKey("Bearer your key");
+        llm.setModel("qwen2.5:latest");//"deepseek-r1:1.5b";
+        llm.setChatEndpoint("http://localhost:11434/v1/chat/completions");
+		// 创建生成器（使用默认配置）
+		GenerateSQLWithLLM generator = new GenerateSQLWithLLM(llm);
+    
+        try{
+			// 生成sql
+            String sql = generator.generateSQL("本月系统的登录人数和登录人次分别是多少？", testGetListTableMeta());
+            System.out.println("--->" + sql);
+        }catch (SqlGenerationException e){
+            e.printStackTrace();
+        }
 
 ```
 

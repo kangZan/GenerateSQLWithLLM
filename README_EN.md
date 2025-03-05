@@ -38,14 +38,12 @@ A text-to-SQL generation tool based on a large language model, supporting custom
 		GenerateSQLWithLLM generator = new GenerateSQLWithLLM(llm);
     
         try{
-            String sql = g.generateSQL("We need to calculate this month's login count.", testGetListTableMeta());
+			// generat sql 
+            String sql = generator.generateSQL("We need to calculate this month's login count.", testGetListTableMeta());
             System.out.println("--->" + sql);
         }catch (SqlGenerationException e){
             e.printStackTrace();
         }
-
-		// generat sql
-		 String sql = generator.generateSQL("？",tables);
 
 
 ```
@@ -132,7 +130,7 @@ class GenerateSQLWithLLM {
 
 ## 📦 Package dependencies
 
-- **Core library:** Hutool 6.1.0 (HTTP/JSON processing), com.theokanning.openai-gpt3-java (large model invocation)
+- **核心库****Core library:** Hutool 6.1.0 (HTTP/JSON processing), com.theokanning.openai-gpt3-java (large model invocation)
 - **Runtime**：Java 17+
 
 ## 📜 Version History
