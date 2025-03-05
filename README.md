@@ -1,0 +1,2 @@
+# GenerateSQLWithLLM
+基于大模型的文本到SQL生成器工具类。旨在通过调用大语言模型api，通过自然语言生与业务系统表结构成查询sql
