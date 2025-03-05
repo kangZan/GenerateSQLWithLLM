@@ -132,7 +132,7 @@ class GenerateSQLWithLLM {
 
 ## 📦 Package dependencies
 
-- **核心库****Core library:** Hutool 6.1.0 (HTTP/JSON processing), com.theokanning.openai-gpt3-java (large model invocation)
+- **Core library:** Hutool 6.1.0 (HTTP/JSON processing), com.theokanning.openai-gpt3-java (large model invocation)
 - **Runtime**：Java 17+
 
 ## 📜 Version History
