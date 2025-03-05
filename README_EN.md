@@ -2,6 +2,10 @@
 
 ![Java](https://img.shields.io/badge/Java-17%2B-blue) [![License](https://img.shields.io/badge/License-Apache%202.0-green)](https://opensource.org/licenses/Apache-2.0)
 
+[English](https://github.com/kangZan/GenerateSQLWithLLM/blob/main/README_EN.md)
+/
+[中文](https://github.com/kangZan/GenerateSQLWithLLM/blob/main/README.md)
+
 A text-to-SQL generation tool based on a large language model, supporting customizable prompts, retry mechanisms, and database adaptation. Automatically generates standardized SQL statements through natural language questions.
 
 ## 🌟 Core Features
