@@ -14,6 +14,7 @@ import com.llm.ttsql.entity.TableMeta;
 import com.llm.ttsql.exception.SqlGenerationException;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -38,8 +39,23 @@ import java.util.*;
  * @history 1. [2025/03/05] 初始版本
  */
 public class GenerateSQLWithLLM {
+    private final Map<String, TableMeta> tableCache = new ConcurrentHashMap<>();
 
+    /**
+     * 缓存表元数据
+     * @param table 需要缓存的表结构元数据
+     */
+    public void cacheTableMeta(TableMeta table) {
+        tableCache.put(table.getTableName(), table);
+    }
 
+    /**
+     * 批量缓存表元数据
+     * @param tables 需要缓存的表结构列表
+     */
+    public void cacheAllTableMeta(List<TableMeta> tables) {
+        tables.forEach(table -> tableCache.put(table.getTableName(), table));
+    }
     private LLMInfo llmInfo;
     private Config config;
 
@@ -48,8 +64,16 @@ public class GenerateSQLWithLLM {
      *
      * @param llmInfo 大模型连接配置，包含API密钥和模型信息
      */
+    public GenerateSQLWithLLM(LLMInfo llmInfo,List<TableMeta> tables) {
+        this(llmInfo,tables, new Config());
+    }
+    /**
+     * 构造方法（使用默认配置）
+     *
+     * @param llmInfo 大模型连接配置，包含API密钥和模型信息
+     */
     public GenerateSQLWithLLM(LLMInfo llmInfo) {
-        this(llmInfo, new Config());
+        this(llmInfo,null, new Config());
     }
 
     /**
@@ -57,16 +81,18 @@ public class GenerateSQLWithLLM {
      *
      * @param llmInfo 大模型连接配置
      * @param config  生成器配置，包括超时、重试策略、生成的sql支持的数据库等
+     * @param tables 初始化时预缓存的表结构列表（可选，可传null）
      * @throws NullPointerException 如果任一参数为null
      */
-    public GenerateSQLWithLLM(LLMInfo llmInfo, Config config) {
+    public GenerateSQLWithLLM(LLMInfo llmInfo, List<TableMeta> tables,Config config) {
+        cacheAllTableMeta(tables);
         this.llmInfo = Objects.requireNonNull(llmInfo);
         this.config = Objects.requireNonNull(config);
     }
 
     /**
      * 生成SQL语句（自动构建提示词）
-     *
+     * <p>当需要动态指定表结构时使用此方法，会优先使用传入的表结构</p>
      * @param question 用户自然语言问题（非空）
      * @param tables   涉及的表结构元数据（至少包含一个表）
      * @return 生成的SQL语句（非空）
@@ -77,6 +103,42 @@ public class GenerateSQLWithLLM {
 
     }
 
+    /**
+     * 生成SQL语句（使用缓存元数据）
+     *
+     *  <p>注意：使用前需确保已通过以下任一方式缓存表结构：</p>
+     *  <ul>
+     *    <li>构造方法预缓存</li>
+     *    <li>调用cacheTableMeta/cacheAllTableMeta方法</li>
+     *  </ul>
+     *
+     * @param question 用户自然语言问题（需非空字符串）
+     * @return 生成的SQL语句
+     * @throws SqlGenerationException 当生成失败时抛出
+     *  @throws IllegalArgumentException 当question为空或缓存为空时抛出
+     */
+    public String generateSQL(String question) throws SqlGenerationException {
+        List<TableMeta> cachedTables = new ArrayList<>(tableCache.values());
+        if (cachedTables.isEmpty()) {
+            throw new IllegalArgumentException("请先通过cacheTableMeta方法缓存表结构");
+        }
+        return generateSQL(question, cachedTables);
+    }
+    /**
+     * 生成SQL语句（使用缓存元数据）
+     * <p>适用于需要同时使用缓存表结构和自定义提示词的场景</p>
+     * @param prompt   自定义提示词模板（将覆盖默认模板）
+     * @param question 用户自然语言问题（非空）
+     * @return 生成的SQL语句
+     * @throws SqlGenerationException 当缓存为空或生成失败时抛出
+     */
+    public String generateSQL(String question, String prompt) throws SqlGenerationException {
+        List<TableMeta> cachedTables = new ArrayList<>(tableCache.values());
+        if (cachedTables.isEmpty()) {
+            throw new IllegalArgumentException("请先通过cacheTableMeta方法缓存表结构");
+        }
+        return generateSQL(question, cachedTables,prompt);
+    }
     /**
      * 生成SQL语句（自定义提示词）
      *
