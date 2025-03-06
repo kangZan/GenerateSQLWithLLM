@@ -40,7 +40,56 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class GenerateSQLWithLLM {
     private final Map<String, TableMeta> tableCache = new ConcurrentHashMap<>();
-
+ /**
+     * 清空当前所有缓存的表元数据
+     * <p>使用场景：</p>
+     * <ul>
+     *   <li>需要释放内存资源时</li>
+     *   <li>表结构发生重大变更需要完全重置时</li>
+     *   <li>切换不同数据库环境前</li>
+     * </ul>
+     * <p><b>注意：</b>清空后调用generateSQL()方法将抛出异常，直到重新缓存表结构</p>
+     */
+    public void clearCache() {
+        tableCache.clear();
+    }
+    /**
+     * 全量刷新缓存（批量模式）
+     * <p>先清空现有缓存，然后批量缓存新表结构，适用于：</p>
+     * <ol>
+     *   <li>数据库迁移后表结构变更</li>
+     *   <li>定期同步最新表结构</li>
+     *   <li>多环境切换（如从测试环境切到生产环境）</li>
+     * </ol>
+     *
+     * @param tables 新的全量表结构集合（非空）
+     * @throws IllegalArgumentException 当tables为null或空集合时抛出
+     */
+    public void refreshCache(List<TableMeta> tables) {
+        Objects.requireNonNull(tables, "表结构列表不能为空");
+        if (tables.isEmpty()) {
+            throw new IllegalArgumentException("至少需要提供一个表结构");
+        }
+        tableCache.clear();
+        cacheAllTableMeta(tables);
+    }
+    /**
+     * 单表结构热更新
+     * <p>特殊场景使用（谨慎操作）：</p>
+     * <ul>
+     *   <li>紧急修复某个表的元数据错误</li>
+     *   <li>临时分析特定表结构</li>
+     *   <li>开发调试时快速验证单个表</li>
+     * </ul>
+     * <p><b>警告：</b>此操作会清空所有已缓存表，仅保留当前传入表</p>
+     *
+     * @param table 需要单独缓存的表结构（非空）
+     */
+    public void refreshCache(TableMeta  table) {
+        Objects.requireNonNull(table, "表结构不能为空");
+        tableCache.clear();
+        cacheTableMeta(table);
+    }
     /**
      * 缓存表元数据
      * @param table 需要缓存的表结构元数据
